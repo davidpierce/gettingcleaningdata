@@ -1,9 +1,7 @@
 # run_analysis.R
 
-
-
 # base path of the raw data
-raw.data.dir <- "raw/UCI HAR Dataset"
+raw.data.dir <- "UCI HAR Dataset"
 
 # raw.filename(...)
 #
@@ -17,7 +15,7 @@ raw.filename <- function(...) {
 #
 # Returns a raw data filename.
 # Example: raw.data.filename("test", "subject")
-# ==> "raw/UCI HAR Dataset/test/subject_test.txt"
+# ==> "UCI HAR Dataset/test/subject_test.txt"
 #
 raw.data.filename <- function(dir, file, suffix=".txt") {
     raw.filename(dir, paste(file, "_", dir, suffix, sep=""))
@@ -126,7 +124,14 @@ tidify.raw.data <- function(dir) {
     data
 }
 
-summarize.subject.activity <- function(dataframes) {
+# summarize.subject.activity(DATA)
+#
+# Groups rows by Subject & Activity and computes the mean of the variables
+# for each group.  DATA is a data frame of the sort produced by
+# tidify.raw.data.
+#
+summarize.subject.activity <- function(data) {
+    dataframes <- split(data, data[, c("Subject", "Activity")])
     result <- data.frame()
     for (i in seq_along(dataframes)) {
         df <- dataframes[[i]]
@@ -142,15 +147,20 @@ summarize.subject.activity <- function(dataframes) {
     result
 }
 
-main <- function() {
+# main(DIR)
+#
+# Produces the har_mean_std and har_subject_activity data sets
+# from the raw HAR data in DIR.
+#
+main <- function(dir) {
+    raw.data.dir <- dir
     dir.create("tidy", recursive=TRUE, showWarnings=FALSE)
     train <- tidify.raw.data("train")
     test <- tidify.raw.data("test")
-    df_mean_std <- rbind(train, test)
-    write.table(df_mean_std, "tidy/har_mean_std.txt", row.names=FALSE)
-    df_by_subject_activity <- summarize.subject.activity(
-        split(df_mean_std, df_mean_std[, c("Subject", "Activity")]))
-    write.table(df_by_subject_activity, "tidy/har_subject_activity.txt", row.names=FALSE)
+    har_mean_std <- rbind(train, test)
+    write.table(har_mean_std, "tidy/har_mean_std.txt", row.names=FALSE)
+    har_subject_activity <- summarize.subject.activity(har_mean_std)
+    write.table(har_subject_activity, "tidy/har_subject_activity.txt", row.names=FALSE)
 }
 
-# main()
+main("UCI HAR Dataset")
